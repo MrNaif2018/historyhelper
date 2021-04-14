@@ -1,0 +1,44 @@
+version: 2.1
+
+jobs:
+  test-backend:
+    docker:
+      - image: cimg/python:3.8
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "backend/requirements.txt" }}-{{ checksum "backend/dev-requirements.txt" }}-3.8
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run:
+          name: install dependencies
+          command: |
+            python3 -m venv ~/venv
+            . ~/venv/bin/activate
+            pip install -U -r backend/requirements.txt
+            pip install -U -r backend/dev-requirements.txt
+      - save_cache:
+          paths:
+            - ~/venv
+          key: v1-dependencies-{{ checksum "backend/requirements.txt" }}-{{ checksum "backend/dev-requirements.txt" }}-3.8
+
+      - run:
+          name: run tests
+          command: |
+            . ~/venv/bin/activate
+            make backend
+      - store_artifacts:
+          path: test-reports
+          destination: test-reports
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - test-backend
