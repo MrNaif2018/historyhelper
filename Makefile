@@ -9,6 +9,6 @@ admin:
 ui:
 	$(MAKE) -C frontend/ui all
 
-ci: backend
+ci: backend admin
 
 .PHONY: backend admin ui ci
